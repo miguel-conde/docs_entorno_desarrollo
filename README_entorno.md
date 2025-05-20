@@ -15,15 +15,16 @@ Este documento describe el entorno de desarrollo configurado en Windows WSL (Ubu
 ## 2. Configuración de WSL
 
 1. **Instalar Ubuntu**
-   ```powershell
+
+```powershell
    wsl --install -d Ubuntu
 ````
 
 2. **Actualizar WSL 2**
 
-   ```powershell
+```powershell
    wsl --set-version Ubuntu 2
-   ```
+```
 3. **Iniciar Ubuntu WSL**
 
    * Desde menú Inicio → "Ubuntu".
