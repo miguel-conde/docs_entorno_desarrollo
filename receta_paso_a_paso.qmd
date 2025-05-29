@@ -1,0 +1,256 @@
+---
+title: "Receta paso a paso"
+format: 
+    html:
+        toc: true
+        toc-location: right
+        toc-floating: true
+        self-contained: true
+number-sections: true
+---
+
+Aquí tienes una receta paso a paso para instalar y configurar tu entorno de Data Science en Windows (WSL2 + VS Code), integrando Python, R, Quarto, Docker y las herramientas habituales:
+
+---
+
+## Ingredientes (Requisitos Previos)
+
+* **Sistema Operativo**
+
+  * Windows 10 (v2004 o superior) o Windows 11, 64 bits, con virtualización habilitada en BIOS.
+* **Hardware**
+
+  * CPU multinúcleo moderno.
+  * ≥ 8 GB RAM (recomendado ≥ 16 GB).
+  * Unidad SSD con al menos decenas de GB libres.
+* **Software en Windows**
+
+  * Visual Studio Code (última versión).
+  * Docker Desktop con integración WSL habilitada.
+* **Conexión a Internet**
+
+  * Para descargar paquetes, contenedores y dependencias.
+
+---
+
+## Receta: Instalación y Configuración
+
+### 1. Habilitar e instalar WSL 2 con Ubuntu
+
+1. Abre PowerShell **como Administrador** y ejecuta:
+
+   ```powershell
+   wsl --install
+   ```
+
+   * Esto habilita WSL y Virtual Machine Platform, e instala Ubuntu por defecto.
+2. (Opcional) Si quieres otra distro:
+
+   ```powershell
+   wsl --list --online
+   wsl --install -d <NombreDistro>
+   ```
+3. Si no reinicia automáticamente, **reinicia** el equipo cuando te lo solicite.
+
+### 2. Primer arranque de Ubuntu y actualización
+
+1. Desde el menú Inicio, abre **Ubuntu**.
+2. Actualiza repositorios e instala actualizaciones:
+
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   ```
+
+### 3. Configurar VS Code con Remote-WSL
+
+1. En VS Code, instala la extensión **Remote – WSL**.
+2. Abre una ventana WSL:
+
+   * Pulsa `F1` → `Remote-WSL: New Window`.
+3. Dentro de esa ventana, instala en WSL las extensiones que necesites:
+
+   * Python, R, Docker, Quarto, etc.
+   * Selecciona “Install in WSL: Ubuntu” cuando VS Code lo pregunte.
+
+### 4. Ajustes de Git para finales de línea LF
+
+```bash
+git config --global core.autocrlf false
+git config --global core.eol lf
+git config --global core.safecrlf true
+```
+
+Y en tu proyecto añade un fichero `.gitattributes` con:
+
+```
+* text=auto eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.R  text eol=lf
+*.md text eol=lf
+```
+
+### 5. Instalación y gestión de versiones de Python
+
+1. Instala **pyenv**:
+
+   ```bash
+   curl https://pyenv.run | bash
+   ```
+2. Añade a tu `~/.bashrc`:
+
+   ```bash
+   export PATH="$HOME/.pyenv/bin:$PATH"
+   eval "$(pyenv init --path)"
+   eval "$(pyenv virtualenv-init -)"
+   ```
+3. Instala y usa Python 3.11.4:
+
+   ```bash
+   pyenv install 3.11.4
+   pyenv global 3.11.4
+   ```
+4. Instala `pipx` y `poetry`:
+
+   ```bash
+   sudo apt install python3-pip pipx
+   pipx ensurepath
+   pipx install poetry
+   ```
+5. Con `pipx`, añade herramientas CLI:
+
+   ```bash
+   pipx install black isort flake8 mypy pre-commit jupyterlab dvc cookiecutter uv
+   ```
+
+### 6. Instalación de R y paquetes esenciales
+
+1. Activa repositorios:
+
+   ```bash
+   sudo add-apt-repository universe
+   sudo apt update
+   sudo apt install r-base r-base-dev
+   ```
+2. Instala dependencias del sistema:
+
+   ```bash
+   sudo apt install -y libxml2-dev libcurl4-openssl-dev libssl-dev \
+       libcairo2-dev libxt-dev libgtk2.0-dev build-essential
+   ```
+3. Desde R, instala paquetes clave:
+
+   ```r
+   install.packages(c("xml2","lintr","roxygen2","httpuv","languageserver"),
+                    repos="https://cloud.r-project.org")
+   install.packages("remotes")
+   remotes::install_github("nx10/httpgd")
+   ```
+
+### 7. Instalar Quarto CLI y extensión
+
+1. Descarga e instala:
+
+   ```bash
+   wget https://github.com/quarto-dev/quarto-cli/releases/download/v1.7.31/quarto-1.7.31-linux-amd64.deb
+   sudo apt install ./quarto-1.7.31-linux-amd64.deb
+   ```
+2. En VS Code (WSL), instala la extensión **Quarto**.
+3. Prueba un proyecto Quarto:
+
+   ```bash
+   mkdir ~/quarto-ejemplo && cd ~/quarto-ejemplo
+   quarto create-project .
+   quarto render index.qmd
+   ```
+
+### 8. Configurar Docker en WSL
+
+1. Añade tu usuario al grupo `docker`:
+
+   ```bash
+   sudo usermod -aG docker $USER
+   newgrp docker
+   ```
+2. Verifica el funcionamiento:
+
+   ```bash
+   docker version
+   docker run hello-world
+   ```
+3. Instala en VS Code la extensión **Docker** (en la ventana Remote-WSL).
+
+### 9. Flujo de trabajo básico
+
+* **Crear proyectos**
+
+  * Python: `poetry new mi_proyecto` → elige intérprete `.venv/bin/python`.
+  * R: en R console, `usethis::create_project("miRproyecto")`.
+* **Abrir proyectos**
+
+  * En VS Code Remote-WSL: `File > Open Folder > ~/projects/...`.
+  * Para carpetas de Windows: `File > Open Folder > /mnt/c/...`.
+* **Workspaces**
+
+  * `File > Add Folder to Workspace…`
+  * `File > Save Workspace As…` para crear un `.code-workspace`.
+* **Copiar proyectos**
+
+  ```bash
+  cp -r /mnt/c/Users/... ~/projects/
+  # O usando rsync, o directamente via \\wsl$\Explorer
+  ```
+
+### 10. GitFlow (opcional)
+
+1. Instala `git-flow`:
+
+   ```bash
+   sudo apt update
+   sudo apt install git-flow
+   ```
+2. Inicialízalo en tu repo:
+
+   ```bash
+   git flow init
+   ```
+
+   * Acepta los valores por defecto (master/main, develop, prefixes…).
+3. Usa los comandos:
+
+   ```bash
+   git flow feature start mi-feature
+   git flow feature finish mi-feature
+   # Igual para release, hotfix…
+   ```
+
+### 11. Verificaciones finales
+
+* Comprueba Git:
+
+  ```bash
+  git config --list | grep core
+  ```
+* Versiones:
+
+  ```bash
+  python --version
+  poetry --version
+  pipx list
+  ```
+* En R:
+
+  ```r
+  library(languageserver)
+  library(httpgd)
+  ```
+* CLI:
+
+  ```bash
+  quarto --version
+  docker version
+  ```
+
+---
+
+¡Listo! Con esto tendrás un entorno completo en WSL2 + VS Code para tus proyectos de Data Science, Machine Learning e IA con Python y R.
